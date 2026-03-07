@@ -1,0 +1,21 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: pw-worker
+  
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5433/pontewire_db
+    username: admin
+    password: password
+
+
+#consumer
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: pw-worker-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
