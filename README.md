@@ -20,7 +20,7 @@ The current focus is on resilience under load, failure isolation with DLQ/retrie
 
 The system follows a decoupled, reactive microservices pattern to ensure **Zero Data Loss** even during massive traffic spikes.
 
-![Architecture Diagram](./images/image_da4f34.png)
+![Architecture Diagram](assets/images/image_da4f34.png)
 
 ### Core Components:
 * **Spring WebFlux Gateway**: A non-blocking entry point that validates and normalizes incoming events.
