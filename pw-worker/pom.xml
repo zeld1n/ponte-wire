@@ -11,7 +11,7 @@
 	<groupId>com.pontewire</groupId>
 	<artifactId>worker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>pw-worker</name>
+	<name>Worker</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -30,7 +30,16 @@
 		<java.version>25</java.version>
 	</properties>
 	<dependencies>
-		<dependency>
+
+        <dependency>
+            <groupId>com.pontewire</groupId>
+            <artifactId>Common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+
+
+        <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-r2dbc</artifactId>
 		</dependency>
@@ -64,7 +73,15 @@
 			<artifactId>spring-boot-starter-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-jackson2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

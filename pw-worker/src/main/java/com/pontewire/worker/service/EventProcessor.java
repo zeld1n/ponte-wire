@@ -1,10 +1,11 @@
 package com.pontewire.worker.service;
 
+import common.DTO.WebhookEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pontewire.worker.entity.ProcessedEvent;
 import com.pontewire.worker.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -16,26 +17,23 @@ import java.time.LocalDateTime;
 public class EventProcessor {
 
     private final EventRepository repository;
+    private final ObjectMapper objectMapper;
 
+    @KafkaListener(topics = "pw.incoming", groupId = "pw-worker-group")
+    public void process(String message) throws Exception {
+        // Convert the incoming JSON string into a WebhookEvent object
+        WebhookEvent event = objectMapper.readValue(message, WebhookEvent.class);
+        log.info("Event decoded from source: {}", event.source());
 
-    @KafkaListener(topics = "pw.incoming")
-    public void process(ConsumerRecord<String,String> record) {
-        log.info("Received event: {} (Key: {})", record.value(), record.key());
+        String jsonPayload = objectMapper.writeValueAsString(event.data());
 
-        ProcessedEvent event = ProcessedEvent.builder()
-                .source(record.key())
-                .payload(record.value())
-                .receivedAt(LocalDateTime.now())
+        ProcessedEvent entity = ProcessedEvent.builder()
+                .source(event.source())
+                .payload(jsonPayload)
+                .receivedAt(event.timestamp())
                 .build();
 
-        repository.save(event)
-                .doOnSuccess(saved -> log.info("saved to db : {}", saved.getId()))
-                .subscribe(); // subscribe worker for execute
-
-
+        repository.save(entity).block();
+        log.info("Event saved to DB");
     }
-
-
-
-
 }

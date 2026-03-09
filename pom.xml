@@ -23,5 +23,6 @@
     <modules>
         <module>pw-gateway</module>
         <module>pw-worker</module>
+        <module>pw-common</module>
     </modules>
 </project>
