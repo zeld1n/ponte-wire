@@ -1,4 +1,4 @@
-# 🌉 ponteWire: High-Performance Reactive Webhook Bridge
+# 🌉 PonteWire: High-Performance Reactive Webhook Bridge
 
 ![Java 25](https://img.shields.io/badge/Java-25-orange?logo=java&logoColor=white)
 ![Spring Boot 4.0.3](https://img.shields.io/badge/Spring_Boot-4.0.3-green?logo=spring&logoColor=white)
@@ -6,7 +6,13 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?logo=postgresql&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-**ponteWire** is a resilient, event-driven bridge designed to handle high-velocity webhook traffic from global providers like Stripe or Shopify. Built for **scalability**, **fault tolerance**, and **data integrity** using the cutting-edge 2026 tech stack.
+# PonteWire: Reactive Event-Driven Webhook Bridge
+
+PonteWire is an event-driven backend project designed to decouple webhook ingestion from downstream processing.
+
+It uses Spring WebFlux for non-blocking ingestion, Apache Kafka as a durable buffer, and R2DBC with PostgreSQL for reactive persistence.
+
+The current focus is on resilience under load, failure isolation with DLQ/retries, and a clean service boundary between ingestion and processing.
 
 ---
 
@@ -59,13 +65,38 @@ The system follows a decoupled, reactive microservices pattern to ensure **Zero 
 * **Docker & Docker Compose**
 * **JDK 25**
 
+
+## 🗺 Roadmap & Future Evolution
+
+The development of **PonteWire** is divided into strategic milestones to reach production-grade maturity.
+
+### 🛡 Milestone 1: Security & Integrity (In Progress)
+- [x] **Core Reactive Pipeline**: End-to-end non-blocking flow.
+- [x] **Dead Letter Queue**: Automated error isolation.
+- [ ] **HMAC Validation**: Implementing $HMAC_{SHA256}$ signature verification for incoming webhooks (e.g., Stripe, Shopify).
+- [ ] **Secrets Management**: Integration with HashiCorp Vault or AWS Secrets Manager.
+
+### 📊 Milestone 2: Observability & Performance
+- [ ] **Metrics Ingestion**: Exporting custom metrics via Micrometer to **Prometheus**.
+- [ ] **Visual Dashboards**: Pre-configured **Grafana** boards for throughput and error rates tracking.
+- [ ] **Distributed Tracing**: Integration with **OpenTelemetry** and Jaeger to trace events across services.
+
+### ⚙️ Milestone 3: Traffic Control & Scaling
+- [ ] **Rate Limiting**: Tenant-based throttling using **Redis** to prevent target system exhaustion.
+- [ ] **Dynamic Routing**: Logic to route events to different target systems based on payload metadata.
+- [ ] **Kubernetes Readiness**: Helm charts and K8s manifests for automated scaling and self-healing.
+
+### 🧪 Milestone 4: Advanced Testing
+- [ ] **Testcontainers**: Comprehensive integration tests for Kafka and PostgreSQL.
+- [ ] **Chaos Engineering**: Simulating network partitions to test system resilience.
+
 ### Quick Start
 ```bash
 # Clone the repository
-git clone [https://github.com/zeld1n/ponte-wire.git](https://github.com/zeld1n/ponte-wire.git)
-
+git clone https://github.com/zeld1n/ponte-wire.git
 # Start the infrastructure (Kafka, Postgres)
 docker compose up -d
 
 # Build and run the services
 mvn clean install
+```
