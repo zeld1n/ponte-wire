@@ -1,59 +1,71 @@
-🌉 ponteWire: High-Performance Reactive Webhook Bridge
-ponteWire is a resilient, event-driven system designed to handle high-velocity webhook traffic from providers like Stripe or Shopify. Built with a focus on scalability, resilience, and data integrity using the latest 2026 tech stack.
+# 🌉 ponteWire: High-Performance Reactive Webhook Bridge
 
-🏗 Architecture
-The system is designed using a decoupled, reactive microservices pattern to ensure zero data loss during peak traffic.
+![Java 25](https://img.shields.io/badge/Java-25-orange?logo=java&logoColor=white)
+![Spring Boot 4.0.3](https://img.shields.io/badge/Spring_Boot-4.0.3-green?logo=spring&logoColor=white)
+![Kafka 4.2.0](https://img.shields.io/badge/Kafka-4.2.0-black?logo=apachekafka&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue?logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Core Components:
-Spring WebFlux Gateway: A non-blocking API entry point that validates and normalizes incoming events before streaming them to Kafka.
+**ponteWire** is a resilient, event-driven bridge designed to handle high-velocity webhook traffic from global providers like Stripe or Shopify. Built for **scalability**, **fault tolerance**, and **data integrity** using the cutting-edge 2026 tech stack.
 
-Apache Kafka (KRaft): Acts as a high-throughput message broker and reliable buffer.
+---
 
-Worker Service: An asynchronous processor that consumes events and persists them to a reactive database.
+## 🏗 Architecture
 
-Resilience Layer: Integrated Dead Letter Queue (DLQ) and retry policies for robust error handling.
+The system follows a decoupled, reactive microservices pattern to ensure **Zero Data Loss** even during massive traffic spikes.
 
-🚀 Key Features
-Zero-Loss Policy: Advanced error handling with Dead Letter Queues (DLQ) and smart retry mechanisms.
+![Architecture Diagram](./images/image_da4f34.png)
 
-Reactive Pipeline: Fully non-blocking I/O from ingestion (WebFlux) to persistence (R2DBC).
+### Core Components:
+* **Spring WebFlux Gateway**: A non-blocking entry point that validates and normalizes incoming events.
+* **Apache Kafka (KRaft)**: Acts as a high-throughput message broker and reliable persistence buffer.
+* **Worker Service**: An asynchronous consumer that processes events and persists them to a reactive database.
+* **Resilience Layer**: Global error handling featuring **Dead Letter Queues (DLQ)** and smart retry policies.
 
-Architectural Contracts: Shared DTOs and validation rules to ensure consistency across services.
+---
 
-Optimized Persistence: Storing data in PostgreSQL JSONB with GIN indexing for efficient querying.
+## 🚀 Key Features
 
-🛠 Tech Stack
-Language: Java 25 (utilizing Records for immutable DTOs)
+| Feature | Description |
+| :--- | :--- |
+| **Zero-Loss Policy** | Advanced error handling with DLQ and smart retry mechanisms using `DeadLetterPublishingRecoverer`. |
+| **Reactive Pipeline** | Fully non-blocking I/O from ingestion (WebFlux) to persistence (R2DBC). |
+| **Architectural Contracts** | Shared DTOs and validation rules (Java 25 Records) to ensure consistency. |
+| **Optimized Persistence** | Native **PostgreSQL JSONB** storage with **GIN indexing** for sub-millisecond querying. |
 
-Framework: Spring Boot 4.0.3
+---
 
-Messaging: Apache Kafka 4.2.0 (KRaft mode)
+## 🛠 Tech Stack
 
-Database: PostgreSQL 17 with R2DBC (Reactive Relational Database Connectivity)
+* **Runtime:** Java 25 (Immutable Records & Pattern Matching)
+* **Framework:** Spring Boot 4.0.3 (Reactive Stack)
+* **Messaging:** Apache Kafka 4.2.0 (KRaft mode, No Zookeeper)
+* **Persistence:** PostgreSQL 17 + R2DBC (Reactive Driver)
+* **Build Tool:** Maven 3.9+
 
-Build Tool: Maven
+---
 
-📦 Project Structure
-pw-common: Shared architectural contracts and utility classes.
+## 📦 Project Structure
 
-pw-gateway: Reactive ingestion service (Producer).
+* `pw-common`: Shared architectural contracts and utility DTOs.
+* `pw-gateway`: High-throughput ingestion service (Kafka Producer).
+* `pw-worker`: Event processing and auditing service (Kafka Consumer).
 
-pw-worker: Event processing and auditing service (Consumer).
+---
 
-🚦 Getting Started
-Prerequisites:
-Docker & Docker Compose
+## 🚦 Getting Started
 
-JDK 25
+### Prerequisites
+* **Docker & Docker Compose**
+* **JDK 25**
 
-Run with Docker:
-Bash
+### Quick Start
+```bash
+# Clone the repository
+git clone [https://github.com/zeld1n/ponte-wire.git](https://github.com/zeld1n/ponte-wire.git)
+
+# Start the infrastructure (Kafka, Postgres)
 docker compose up -d
 
-🗺 Roadmap
-
-[ ] Implement HMAC (X-Hub-Signature) verification for security.
-
-[ ] Add Observability with Prometheus and Grafana.
-
-[ ] Implement Tenant-based Rate Limiting with Redis.
+# Build and run the services
+mvn clean install
