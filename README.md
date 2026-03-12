@@ -13,7 +13,7 @@ PonteWire is an event-driven backend project designed to decouple webhook ingest
 It uses Spring WebFlux for non-blocking ingestion, Apache Kafka as a durable buffer, and R2DBC with PostgreSQL for reactive persistence.
 
 The current focus is on resilience under load, failure isolation with DLQ/retries, and a clean service boundary between ingestion and processing.
-
+ 
 ---
 
 ## 🏗 Architecture
