@@ -33,7 +33,10 @@ public class EventProcessor {
                 .receivedAt(event.timestamp())
                 .build();
 
-        repository.save(entity).block();
-        log.info("Event saved to DB");
+        repository.save(entity)
+                .doOnSuccess(saved -> log.info("Event saved to DB"))
+                .doOnError(e -> log.error("Failed to save event", e))
+                .subscribe();
+
     }
 }
