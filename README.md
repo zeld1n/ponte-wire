@@ -74,6 +74,7 @@ The development of **PonteWire** is divided into strategic milestones to reach p
 - [x] **Core Reactive Pipeline**: End-to-end non-blocking flow.
 - [x] **Dead Letter Queue**: Automated error isolation.
 - [x] **HMAC Validation**: Implementing $HMAC_{SHA256}$ signature verification for incoming webhooks (e.g., Stripe, Shopify).
+- [x] **HMAC Test Coverage**: Unit tests (`HmacValidationFilterTest`) and WebFlux slice tests (`HmacValidationFilterWebTest`).
 - [ ] **Secrets Management**: Integration with HashiCorp Vault or AWS Secrets Manager.
 
 ### 📊 Milestone 2: Observability & Performance
