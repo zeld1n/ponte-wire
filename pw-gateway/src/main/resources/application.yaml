@@ -1,4 +1,8 @@
 spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5433/pontewire_db
+    username: admin
+    password: password
   application:
     name: pw-gateway
   kafka:
