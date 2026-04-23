@@ -13,7 +13,14 @@ spring:
       acks: all
     admin:
       auto-create: true
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
 server:
   port: 8080
 

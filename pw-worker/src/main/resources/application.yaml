@@ -4,18 +4,23 @@ server:
 spring:
   application:
     name: pw-worker
-  
   r2dbc:
     url: r2dbc:postgresql://localhost:5433/pontewire_db
     username: admin
     password: password
-
-
-#consumer
-  kafka:
+  kafka:              # ← під spring, не під management
     bootstrap-servers: localhost:9092
     consumer:
       group-id: pw-worker-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}

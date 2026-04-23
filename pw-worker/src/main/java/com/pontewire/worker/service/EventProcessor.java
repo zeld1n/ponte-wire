@@ -4,6 +4,7 @@ import common.DTO.WebhookEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pontewire.worker.entity.ProcessedEvent;
 import com.pontewire.worker.repository.EventRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,6 +19,7 @@ public class EventProcessor {
 
     private final EventRepository repository;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
 
     @KafkaListener(topics = "pw.incoming", groupId = "pw-worker-group")
     public void process(String message) throws Exception {
@@ -34,9 +36,16 @@ public class EventProcessor {
                 .build();
 
         repository.save(entity)
-                .doOnSuccess(saved -> log.info("Event saved to DB"))
-                .doOnError(e -> log.error("Failed to save event", e))
+                .doOnSuccess(saved -> {
+                    log.info("Event saved to DB from source: {}", event.source());
+                    meterRegistry.counter("pontewire.events.processed",
+                            "source", event.source()).increment();
+                })
+                .doOnError(e -> {
+                    log.error("Failed to save event from source: {}", event.source(), e);
+                    meterRegistry.counter("pontewire.events.failed",
+                            "source", event.source()).increment();
+                })
                 .subscribe();
-
     }
 }

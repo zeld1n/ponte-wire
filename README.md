@@ -78,8 +78,8 @@ The development of **PonteWire** is divided into strategic milestones to reach p
 - [ ] **Secrets Management**: Integration with HashiCorp Vault or AWS Secrets Manager.
 
 ### 📊 Milestone 2: Observability & Performance
-- [ ] **Metrics Ingestion**: Exporting custom metrics via Micrometer to **Prometheus**.
-- [ ] **Visual Dashboards**: Pre-configured **Grafana** boards for throughput and error rates tracking.
+- [x] **Metrics Ingestion**: Exporting custom metrics via Micrometer to **Prometheus**.
+- [x] **Visual Dashboards**: Pre-configured **Grafana** boards for throughput and error rates tracking.
 - [ ] **Distributed Tracing**: Integration with **OpenTelemetry** and Jaeger to trace events across services.
 
 ### ⚙️ Milestone 3: Traffic Control & Scaling

@@ -1,6 +1,7 @@
 package com.pontewire.gateway.controller;
 
 import common.DTO.WebhookEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -18,9 +19,12 @@ public class PonteIngressController {
 
     private final ObjectMapper objectMapper;
 
-    public PonteIngressController(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+    private final MeterRegistry meterRegistry;
+
+    public PonteIngressController(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper, MeterRegistry meterRegistry) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
+        this.meterRegistry = meterRegistry;
     }
 
     @PostMapping("/{source}")
@@ -34,6 +38,8 @@ public class PonteIngressController {
                 event.data(),
                 event.timestamp()
         );
+        meterRegistry.counter("pontewire.webhooks.received",
+                "source", source).increment();
 
         return Mono.fromRunnable(() -> sendToKafka(source, normalizedEvent)).then();
     }

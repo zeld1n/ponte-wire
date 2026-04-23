@@ -1,5 +1,6 @@
 package com.pontewire.gateway.component;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -20,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
-
+@Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class HmacValidationFilter implements WebFilter {
@@ -31,6 +32,11 @@ public class HmacValidationFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        String path = exchange.getRequest().getURI().getPath();
+
+        if (path.startsWith("/actuator")) {
+            return chain.filter(exchange);
+        }
         String signature = exchange.getRequest().getHeaders()
                 .getFirst("X-Signature-SHA256"); //  Stripe-Signature
 
@@ -64,16 +70,28 @@ public class HmacValidationFilter implements WebFilter {
                 });
     }
 //HMAC validation
-    private boolean isValidSignature(byte[] body, String receivedSig) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            byte[] expectedBytes = mac.doFinal(body);
-            String expected = "sha256=" + HexFormat.of().formatHex(expectedBytes);
+private boolean isValidSignature(byte[] body, String receivedSig) {
+    try {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(
+                secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"
+        ));
+        byte[] expectedBytes = mac.doFinal(body);
+        String expected = "sha256=" + HexFormat.of().formatHex(expectedBytes);
 
-            return MessageDigest.isEqual(expected.getBytes(), receivedSig.getBytes());
-        } catch (Exception e) {
-            return false;
-        }
+        // тимчасово — видалиш після фіксу
+        log.info("SECRET    : '{}'", secret);
+        log.info("BODY SIZE : {} bytes", body.length);
+        log.info("EXPECTED  : {}", expected);
+        log.info("RECEIVED  : {}", receivedSig);
+
+        return MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8),
+                receivedSig.getBytes(StandardCharsets.UTF_8)
+        );
+    } catch (Exception e) {
+        log.error("HMAC error", e);
+        return false;
     }
+}
 }
