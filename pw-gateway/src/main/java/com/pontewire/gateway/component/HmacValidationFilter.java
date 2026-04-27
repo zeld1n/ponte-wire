@@ -1,5 +1,7 @@
 package com.pontewire.gateway.component;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
@@ -24,11 +26,13 @@ import java.util.HexFormat;
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
 public class HmacValidationFilter implements WebFilter {
 
 
     @Value("${pontewire.hmac.secret}")
     private String secret;
+    private final MeterRegistry meterRegistry;  // ← додати
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -41,6 +45,8 @@ public class HmacValidationFilter implements WebFilter {
                 .getFirst("X-Signature-SHA256"); //  Stripe-Signature
 
         if (signature == null) {
+            meterRegistry.counter("pontewire.webhooks.rejected",
+                    "reason", "missing_signature").increment();  // ← додати
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
@@ -53,6 +59,8 @@ public class HmacValidationFilter implements WebFilter {
                     DataBufferUtils.release(dataBuffer);
 
                     if (!isValidSignature(rawBody, signature)) {
+                        meterRegistry.counter("pontewire.webhooks.rejected",
+                                "reason", "invalid_signature").increment();  // ← додати
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         return exchange.getResponse().setComplete();
                     }
@@ -79,11 +87,10 @@ private boolean isValidSignature(byte[] body, String receivedSig) {
         byte[] expectedBytes = mac.doFinal(body);
         String expected = "sha256=" + HexFormat.of().formatHex(expectedBytes);
 
-        // тимчасово — видалиш після фіксу
-        log.info("SECRET    : '{}'", secret);
-        log.info("BODY SIZE : {} bytes", body.length);
-        log.info("EXPECTED  : {}", expected);
-        log.info("RECEIVED  : {}", receivedSig);
+//        log.info("SECRET    : '{}'", secret);
+//        log.info("BODY SIZE : {} bytes", body.length);
+//        log.info("EXPECTED  : {}", expected);
+//        log.info("RECEIVED  : {}", receivedSig);
 
         return MessageDigest.isEqual(
                 expected.getBytes(StandardCharsets.UTF_8),
