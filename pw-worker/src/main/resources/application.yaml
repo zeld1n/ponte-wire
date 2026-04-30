@@ -8,7 +8,7 @@ spring:
     url: r2dbc:postgresql://localhost:5433/pontewire_db
     username: admin
     password: password
-  kafka:              # ← під spring, не під management
+  kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: pw-worker-group
@@ -24,3 +24,9 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
