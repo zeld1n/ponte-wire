@@ -43,10 +43,16 @@ services:
         - GF_SECURITY_ADMIN_USER=admin
         - GF_SECURITY_ADMIN_PASSWORD=admin
       restart: unless-stopped
-  jaeger:
-    image: jaegertracing/jaeger:latest
-    container_name: jaeger
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
     ports:
-      - "4318:4318"   # OTLP HTTP receiver
-      - "16686:16686" # Jaeger UI
+      - "9411:9411"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped

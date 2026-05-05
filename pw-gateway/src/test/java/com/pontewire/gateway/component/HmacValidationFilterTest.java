@@ -11,6 +11,7 @@ import java.util.HexFormat;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class HmacValidationFilterTest {
 
@@ -18,7 +19,7 @@ class HmacValidationFilterTest {
     private static final String SECRET = "test-secret";
     @BeforeEach
     void setUp() {
-        filter = new HmacValidationFilter();
+        filter = new HmacValidationFilter(new SimpleMeterRegistry());
         ReflectionTestUtils.setField(filter, "secret", SECRET);
     }
 

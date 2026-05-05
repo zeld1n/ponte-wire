@@ -13,6 +13,12 @@ spring:
       acks: all
     admin:
       auto-create: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+
 management:
   endpoints:
     web:
@@ -24,12 +30,21 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  otlp:
-      tracing:
-        endpoint: http://localhost:4318/v1/traces
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 server:
   port: 8080
 
 pontewire:
   hmac:
-    secret: "top secret =) "
+    secret: ${PONTEWIRE_HMAC_SECRET:local-dev-secret}
+  rate-limit:
+    requests-per-minute: 10
+  routing:
+    default-topic: pw.incoming
+    routes:
+      stripe:  pw.incoming.payments
+      shopify: pw.incoming.commerce
+      github:  pw.incoming.devops
+      gitlab:  pw.incoming.devops

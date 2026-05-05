@@ -83,8 +83,8 @@ The development of **PonteWire** is divided into strategic milestones to reach p
 - [ ] **Distributed Tracing**: Integration with **OpenTelemetry** and Jaeger to trace events across services.
 
 ### ⚙️ Milestone 3: Traffic Control & Scaling
-- [ ] **Rate Limiting**: Tenant-based throttling using **Redis** to prevent target system exhaustion.
-- [ ] **Dynamic Routing**: Logic to route events to different target systems based on payload metadata.
+- [x] **Rate Limiting**: Tenant-based throttling using **Redis** to prevent target system exhaustion.
+- [x] **Dynamic Routing**: Logic to route events to different target systems based on payload metadata.
 - [ ] **Kubernetes Readiness**: Helm charts and K8s manifests for automated scaling and self-healing.
 
 ### 🧪 Milestone 4: Advanced Testing
