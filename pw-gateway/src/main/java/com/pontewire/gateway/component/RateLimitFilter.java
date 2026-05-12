@@ -15,10 +15,10 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
-@Slf4j
 @Component
 @Order(2)
 @RequiredArgsConstructor
+@Slf4j
 public class RateLimitFilter implements WebFilter {
 
     private final ReactiveRedisTemplate<String, String> redisTemplate;

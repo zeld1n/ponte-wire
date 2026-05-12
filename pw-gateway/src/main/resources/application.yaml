@@ -33,6 +33,16 @@ management:
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    endpoint:
+      health:
+        probes:
+          enabled: true
+
 server:
   port: 8080
 
@@ -40,7 +50,7 @@ pontewire:
   hmac:
     secret: ${PONTEWIRE_HMAC_SECRET:local-dev-secret}
   rate-limit:
-    requests-per-minute: 10
+    requests-per-minute: 2000
   routing:
     default-topic: pw.incoming
     routes:
