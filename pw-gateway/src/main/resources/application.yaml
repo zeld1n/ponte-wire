@@ -1,18 +1,26 @@
 spring:
+  application:
+    name: pw-gateway
   r2dbc:
     url: r2dbc:postgresql://localhost:5433/pontewire_db
     username: admin
     password: password
-  application:
-    name: pw-gateway
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
+      batch-size: 65536
+      buffer-memory: 33554432
+      properties:
+        linger.ms: 5
     admin:
       auto-create: true
+    template:
+      observation-enabled: true
+
   data:
     redis:
       host: localhost
@@ -23,16 +31,22 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus, metrics
+        include: health, info, prometheus, metrics, traces
   metrics:
     tags:
       application: ${spring.application.name}
+
   tracing:
     sampling:
-      probability: 1.0
-  zipkin:
+      probability: 1.0   # 100 % in dev; tune to 0.1 in prod
+
+
+  otlp:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+      endpoint: http://localhost:4318/v1/traces
+      headers:
+        x-service-name: ${spring.application.name}
+
   health:
     livenessstate:
       enabled: true
@@ -50,7 +64,7 @@ pontewire:
   hmac:
     secret: ${PONTEWIRE_HMAC_SECRET:local-dev-secret}
   rate-limit:
-    requests-per-minute: 2000
+    requests-per-minute: 9999999
   routing:
     default-topic: pw.incoming
     routes:

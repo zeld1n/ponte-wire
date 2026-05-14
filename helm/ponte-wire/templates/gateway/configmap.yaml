@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pw-gateway-config
+data:
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers }}
+  SPRING_DATA_REDIS_HOST: {{ .Values.redis.host }}
+  SPRING_DATA_REDIS_PORT: "{{ .Values.redis.port }}"
+  SERVER_PORT: "{{ .Values.gateway.port }}"

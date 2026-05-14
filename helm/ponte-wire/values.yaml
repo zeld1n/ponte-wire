@@ -1,0 +1,23 @@
+gateway:
+  image: ponte-wire/gateway:latest
+  port: 8080
+  replicas: 1
+  hmacSecret: local-dev-secret
+  rateLimitPerMinute: 100
+
+worker:
+  image: ponte-wire/worker:latest
+  port: 8081
+  replicas: 1
+
+kafka:
+  bootstrapServers: kafka:9092
+
+postgres:
+  url: r2dbc:postgresql://postgres:5432/pontewire_db
+  username: admin
+  password: password
+
+redis:
+  host: redis
+  port: 6379

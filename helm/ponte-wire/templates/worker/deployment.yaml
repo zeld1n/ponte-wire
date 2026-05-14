@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pw-worker
+  labels:
+    app: pw-worker
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      app: pw-worker
+  template:
+    metadata:
+      labels:
+        app: pw-worker
+    spec:
+      containers:
+        - name: pw-worker
+          image: {{ .Values.worker.image }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.worker.port }}
+          envFrom:
+            - configMapRef:
+                name: pw-worker-config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.worker.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.worker.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10

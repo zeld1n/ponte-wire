@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pw-gateway
+  labels:
+    app: pw-gateway
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: pw-gateway
+  template:
+    metadata:
+      labels:
+        app: pw-gateway
+    spec:
+      containers:
+        - name: pw-gateway
+          image: {{ .Values.gateway.image }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.gateway.port }}
+          env:
+            - name: PONTEWIRE_HMAC_SECRET
+              value: {{ .Values.gateway.hmacSecret }}
+          envFrom:
+            - configMapRef:
+                name: pw-gateway-config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10

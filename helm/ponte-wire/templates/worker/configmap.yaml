@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pw-worker-config
+data:
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: {{ .Values.kafka.bootstrapServers }}
+  SPRING_R2DBC_URL: {{ .Values.postgres.url }}
+  SPRING_R2DBC_USERNAME: {{ .Values.postgres.username }}
+  SPRING_R2DBC_PASSWORD: {{ .Values.postgres.password }}
+  SERVER_PORT: "{{ .Values.worker.port }}"

@@ -85,7 +85,7 @@ The development of **PonteWire** is divided into strategic milestones to reach p
 ### ⚙️ Milestone 3: Traffic Control & Scaling
 - [x] **Rate Limiting**: Tenant-based throttling using **Redis** to prevent target system exhaustion.
 - [x] **Dynamic Routing**: Logic to route events to different target systems based on payload metadata.
-- [ ] **Kubernetes Readiness**: Helm charts and K8s manifests for automated scaling and self-healing.
+- [x] **Kubernetes Readiness**: Helm charts and K8s manifests for automated scaling and self-healing.
 
 ### 🧪 Milestone 4: Advanced Testing
 - [ ] **Testcontainers**: Comprehensive integration tests for Kafka and PostgreSQL.

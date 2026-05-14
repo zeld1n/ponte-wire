@@ -1,56 +1,86 @@
 package com.pontewire.gateway.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import common.DTO.WebhookEvent;
-import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.validation.Valid;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/bridge")
+@RequestMapping("/webhook")
+@RequiredArgsConstructor
 public class PonteIngressController {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-
     private final ObjectMapper objectMapper;
+    private final Tracer tracer;                      // Micrometer Tracer (backed by OTel)
+    private final ObservationRegistry observationRegistry;
 
-    private final MeterRegistry meterRegistry;
-
-    public PonteIngressController(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper, MeterRegistry meterRegistry) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-        this.meterRegistry = meterRegistry;
-    }
 
     @PostMapping("/{source}")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public Mono<Void> ingestEvent(
-            @PathVariable String source,
-            @Valid @RequestBody WebhookEvent event) {
+    public Mono<Void> ingest(@PathVariable String source,
+                             @RequestBody Map<String, Object> payload) {
 
-        WebhookEvent normalizedEvent = new WebhookEvent(
-                source,
-                event.data(),
-                event.timestamp()
-        );
-        meterRegistry.counter("pontewire.webhooks.received",
-                "source", source).increment();
+        log.info("[traceId visible in MDC] Routing webhook from source={}", source);
+        WebhookEvent event = new WebhookEvent(source, payload, Instant.now());
 
-        return Mono.fromRunnable(() -> sendToKafka(source, normalizedEvent)).then();
+        return Mono.fromCallable(() -> objectMapper.writeValueAsString(event))
+                .flatMap(json -> {
+                    String topic = "pw.incoming." + source;
+                    return Mono.fromFuture(kafkaTemplate.send(topic, UUID.randomUUID().toString(), json).toCompletableFuture());
+                })
+                .doOnSuccess(result -> log.info("Event published to Kafka, topic={}", result.getRecordMetadata().topic()))
+                .then();
     }
 
 
-    @SneakyThrows
-    private void sendToKafka(String source, WebhookEvent event) {
-        // Conv onj webhookevent -> JSON
-        String payload = objectMapper.writeValueAsString(event);
+    @PostMapping("/manual/{source}")
+    public Mono<Void> sendWithExplicitTraceHeader(@PathVariable String source,
+                                                  @RequestBody Map<String, Object> payload) {
 
-        //source -> key ; event -> paylod
-        kafkaTemplate.send("pw.incoming", source, payload);
+        WebhookEvent event = new WebhookEvent(source, payload, Instant.now());
+
+        return Mono.fromCallable(() -> objectMapper.writeValueAsString(event))
+                .flatMap(json -> {
+
+                    ProducerRecord<String, String> record =
+                            new ProducerRecord<>("pw.incoming." + source, source, json);
+
+                    Span currentSpan = tracer.currentSpan();
+                    if (currentSpan != null) {
+                        TraceContext ctx = currentSpan.context();
+
+                        String traceparent = "00-" + ctx.traceId()
+                                + "-" + ctx.spanId()
+                                + "-01";
+
+                        record.headers().add(
+                                "traceparent",
+                                traceparent.getBytes(StandardCharsets.UTF_8)
+                        );
+                        record.headers().add(
+                                "uber-trace-id",
+                                (ctx.traceId() + ":" + ctx.spanId() + ":0:1")
+                                        .getBytes(StandardCharsets.UTF_8)
+                        );
+                        log.debug("Injected traceparent={} into Kafka record", traceparent);
+                    }
+
+                    return Mono.fromFuture(kafkaTemplate.send(record).toCompletableFuture());
+                })
+                .then();
     }
 }

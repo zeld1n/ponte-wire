@@ -21,7 +21,7 @@ public class EventProcessor {
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
 
-    @KafkaListener(topics = "pw.incoming", groupId = "pw-worker-group")
+    @KafkaListener(topicPattern = "pw\\.incoming.*", groupId = "pw-worker-group")
     public void process(String message) throws Exception {
         // Convert the incoming JSON string into a WebhookEvent object
         WebhookEvent event = objectMapper.readValue(message, WebhookEvent.class);
@@ -32,7 +32,7 @@ public class EventProcessor {
         ProcessedEvent entity = ProcessedEvent.builder()
                 .source(event.source())
                 .payload(jsonPayload)
-                .receivedAt(event.timestamp())
+                .receivedAt(event.timestamp().atZone(java.time.ZoneOffset.UTC).toLocalDateTime())
                 .build();
 
         repository.save(entity)

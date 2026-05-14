@@ -1,13 +1,12 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: pw-worker
+
   r2dbc:
     url: r2dbc:postgresql://localhost:5433/pontewire_db
     username: admin
     password: password
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -15,6 +14,9 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      observation-enabled: true
+      concurrency: 4
 
 management:
   endpoints:
@@ -27,6 +29,11 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  zipkin:
+  otlp:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+      endpoint: http://localhost:4318/v1/traces
+      headers:
+        x-service-name: ${spring.application.name}
+
+server:
+  port: 8081
