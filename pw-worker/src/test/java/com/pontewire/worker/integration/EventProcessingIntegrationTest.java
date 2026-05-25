@@ -11,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -52,6 +53,8 @@ class EventProcessingIntegrationTest {
         );
         registry.add("spring.r2dbc.username", postgres::getUsername);
         registry.add("spring.r2dbc.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
     }
 
     @Autowired
@@ -136,9 +139,17 @@ class EventProcessingIntegrationTest {
                 })
                 .verifyComplete();
     }
-    //TODO
+    @Container
+    static final GenericContainer<?> redis = new GenericContainer<>(
+            DockerImageName.parse("redis:7-alpine")
+    ).withExposedPorts(6379);
+
+
+
     @Test
     void whenSamePayloadSentTwice_thenPersistedOnlyOnce() throws Exception {
+        log.info("Sending duplicate payloads — idempotency IS implemented...");
+
         String key = UUID.randomUUID().toString();
         String payload = """
             {
@@ -158,7 +169,7 @@ class EventProcessingIntegrationTest {
         StepVerifier.create(countQuery)
                 .assertNext(count -> {
                     log.info("Records in DB after duplicate send: {}", count);
-                    assertThat(count).isGreaterThan(0);
+                    assertThat(count).isEqualTo(1);
                 })
                 .verifyComplete();
     }

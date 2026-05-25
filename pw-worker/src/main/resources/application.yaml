@@ -1,7 +1,10 @@
 spring:
   application:
     name: pw-worker
-
+  data:
+    redis:
+      host: localhost
+      port: 6379
   r2dbc:
     url: r2dbc:postgresql://localhost:5433/pontewire_db
     username: admin
@@ -9,7 +12,6 @@ spring:
     pool:
       initial-size: 10
       max-size: 30
-
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -20,6 +22,10 @@ spring:
     listener:
       observation-enabled: true
       concurrency: 4
+
+pontewire:
+  idempotency:
+    ttl-hours: 24
 
 management:
   endpoints:

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
@@ -20,31 +21,42 @@ public class EventProcessor {
     private final EventRepository repository;
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
+    private final IdempotencyService idempotencyService;
 
     @KafkaListener(topicPattern = "pw\\.incoming.*", groupId = "pw-worker-group")
     public void process(String message) throws Exception {
-        // Convert the incoming JSON string into a WebhookEvent object
         WebhookEvent event = objectMapper.readValue(message, WebhookEvent.class);
         log.info("Event decoded from source: {}", event.source());
 
-        String jsonPayload = objectMapper.writeValueAsString(event.data());
+        idempotencyService.isDuplicate(message)
+                .flatMap(isDuplicate -> {
+                    if (isDuplicate) {
+                        log.info("Skipping duplicate event from source: {}", event.source());
+                        return reactor.core.publisher.Mono.empty();
+                    }
 
-        ProcessedEvent entity = ProcessedEvent.builder()
-                .source(event.source())
-                .payload(jsonPayload)
-                .receivedAt(event.timestamp().atZone(java.time.ZoneOffset.UTC).toLocalDateTime())
-                .build();
-
-        repository.save(entity)
-                .doOnSuccess(saved -> {
-                    log.info("Event saved to DB from source: {}", event.source());
-                    meterRegistry.counter("pontewire.events.processed",
-                            "source", event.source()).increment();
-                })
-                .doOnError(e -> {
-                    log.error("Failed to save event from source: {}", event.source(), e);
-                    meterRegistry.counter("pontewire.events.failed",
-                            "source", event.source()).increment();
+                    return Mono.fromCallable(() -> {
+                                String jsonPayload = objectMapper.writeValueAsString(event.data());
+                                return ProcessedEvent.builder()
+                                        .source(event.source())
+                                        .payload(jsonPayload)
+                                        .receivedAt(event.timestamp()
+                                                .atZone(java.time.ZoneOffset.UTC)
+                                                .toLocalDateTime())
+                                        .build();
+                            })
+                            .flatMap(entity -> repository.save(entity)
+                                    .doOnSuccess(saved -> {
+                                        log.info("Event saved to DB from source: {}", event.source());
+                                        meterRegistry.counter("pontewire.events.processed",
+                                                "source", event.source()).increment();
+                                    })
+                                    .doOnError(e -> {
+                                        log.error("Failed to save event: {}", e.getMessage());
+                                        meterRegistry.counter("pontewire.events.failed",
+                                                "source", event.source()).increment();
+                                    })
+                            );
                 })
                 .subscribe();
     }
