@@ -15,6 +15,9 @@ It uses Spring WebFlux for non-blocking ingestion, Apache Kafka as a durable buf
 The current focus is on resilience under load, failure isolation with DLQ/retries, distributed observability, and a clean service boundary between ingestion and processing.
 
 ---
+## 🌉 Preview
+
+![Preview Diagram](assets/images/PonteWire-Preview.jpeg)
 
 ## 🏗 Architecture
 
