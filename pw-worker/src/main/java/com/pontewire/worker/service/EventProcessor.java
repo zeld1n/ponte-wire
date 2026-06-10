@@ -23,7 +23,7 @@ public class EventProcessor {
     private final MeterRegistry meterRegistry;
     private final IdempotencyService idempotencyService;
 
-    @KafkaListener(topicPattern = "pw\\.incoming.*", groupId = "pw-worker-group")
+    @KafkaListener(topicPattern = "pw\\.incoming(?!\\.dlq).*", groupId = "pw-worker-group")
     public void process(String message) throws Exception {
         WebhookEvent event = objectMapper.readValue(message, WebhookEvent.class);
         log.info("Event decoded from source: {}", event.source());

@@ -70,19 +70,25 @@ class EventProcessingIntegrationTest {
     KafkaAdmin kafkaAdmin;
 
     @BeforeEach
-    void setup() throws InterruptedException {
+    void setup() throws Exception {
         databaseClient.sql("""
-            CREATE TABLE IF NOT EXISTS processed_events (
-                id          BIGSERIAL PRIMARY KEY,
-                source      VARCHAR(255),
-                payload     TEXT,
-                received_at TIMESTAMP
-            )
-            """)
+        CREATE TABLE IF NOT EXISTS processed_events (
+            id          BIGSERIAL PRIMARY KEY,
+            source      VARCHAR(255),
+            payload     TEXT,
+            received_at TIMESTAMP
+        )
+        """)
                 .fetch()
                 .rowsUpdated()
                 .block();
 
+        databaseClient.sql("DELETE FROM processed_events")
+                .fetch()
+                .rowsUpdated()
+                .block();
+
+        redis.execInContainer("redis-cli", "FLUSHALL");
     }
     @Test
     void whenMessageSentToKafka_thenPersistedToDatabase() throws Exception {

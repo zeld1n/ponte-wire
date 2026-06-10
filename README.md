@@ -196,14 +196,16 @@ curl -X POST http://localhost:8080/webhook/stripe \
 - [x] Dynamic routing by payload metadata
 - [x] Kubernetes Helm charts and K8s manifests
 
-### 🔲 Milestone 4 — Advanced Testing
-- [ ] Testcontainers integration tests for Kafka and PostgreSQL
-- [ ] Chaos engineering — network partition simulation (Toxiproxy)
+#### ✅ Milestone 4 — Advanced Testing
+- [x] Testcontainers integration tests for Kafka, PostgreSQL, and Redis
+- [x] 4 integration tests: happy path, invalid payload, failed processing, idempotency
+- [x] Full test isolation — DB and Redis flushed between each test via execInContainer
 
-### 🔲 Milestone 5 — Idempotency & Deduplication
-- [ ] Idempotency key extraction from header or payload hash
-- [ ] Redis TTL store to detect and discard duplicate deliveries
-- [ ] Metrics: `pontewire.duplicates.detected`
+### ✅ Milestone 5 — Idempotency & Deduplication
+- [x] SHA-256 hash of raw Kafka message as idempotency key
+- [x] Redis SETNX with 24h TTL — duplicate deliveries silently discarded
+- [x] Metrics: `pontewire.duplicates.detected`
+- [x] Integration test proves exactly-once persistence under duplicate delivery
 
 ### 🔲 Milestone 6 — Transactional Outbox Pattern
 - [ ] `outbox_events` table in PostgreSQL
